@@ -11,6 +11,7 @@ const InfoCard = ({
   location = "Kitchen",
   iconName = "time-outline",
   iconColor = "#60A5FA",
+  pinNo
 }) => {
 
   const [isSwitchOn, setIsSwitchOn] = useState(false);
@@ -49,6 +50,7 @@ const InfoCard = ({
         activeColor="#60A5FA"
         inactiveColor="#F3F4F6"
         circleColor="#FFFFFF"
+        pinNo={pinNo}
       />
           )}
         </View>

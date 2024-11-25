@@ -1,6 +1,7 @@
 import { Feather } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
 import { Text, View, TouchableOpacity, StyleSheet } from "react-native";
+import TabFiveScreen from "./five";
 
 /**
  * Custom Tab Bar Component
@@ -89,7 +90,7 @@ export default function TabLayout() {
         options={{ tabBarButton: () => null }} // Hide from tabs
       />
       <Tabs.Screen name="four" />
-      <Tabs.Screen name="five" />
+      <Tabs.Screen name="five"/>
     </Tabs>
   );
 }
@@ -140,7 +141,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     borderTopWidth: 1,
     borderColor: "#e5e7eb",
-    height: 70,
+    height: 90,
     alignItems: "center",
   },
   tabButton: {
@@ -160,10 +161,10 @@ const styles = StyleSheet.create({
   },
   floatingButton: {
     position: "absolute",
-    bottom: 30,
+    bottom: 50,
     left: "50%",
     transform: [{ translateX: -35 }],
-    backgroundColor: "#4B5563",
+    backgroundColor: "#60A5FA",
     width: 70,
     height: 70,
     borderRadius: 35,

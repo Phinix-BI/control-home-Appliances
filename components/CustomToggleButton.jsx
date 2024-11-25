@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { View, TouchableOpacity, Animated, StyleSheet } from "react-native";
+import axios from 'axios';
 
 const CustomToggleButton = ({
   isEnabled = false, // Initial state
@@ -7,6 +8,7 @@ const CustomToggleButton = ({
   activeColor = "#E3F2FD", // Background color when enabled
   inactiveColor = "#F3F4F6", // Background color when disabled
   circleColor = "#FFFFFF", // Circle color
+  pinNo
 }) => {
   const translateX = useState(new Animated.Value(isEnabled ? 22 : 0))[0];
 
@@ -18,8 +20,18 @@ const CustomToggleButton = ({
     }).start();
   }, [isEnabled]);
 
-  const handleToggle = () => {
-    onToggle(!isEnabled);
+  const handleToggle = async() => {
+    const power = isEnabled ? 'L' : 'H';
+    try {
+      const response = await axios.post(process.env.EXPO_PUBLIC_ESP32_SERVER_URL, {
+        pin: pinNo,
+        state: power,
+      });
+      console.log(response.data);
+      onToggle(!isEnabled);
+    } catch (error) {
+      console.error("Error toggling pin:", error);
+    }
   };
 
   return (
