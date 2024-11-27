@@ -7,7 +7,8 @@ import 'react-native-reanimated';
 import { vars } from "nativewind";
 import React , { memo, useEffect } from "react";
 import { View, StyleSheet } from "react-native";
-
+import {ServerAddressProvider} from "../context/ServerAddressContext";
+ 
 // Prevent the splash screen from auto-hiding until we are ready to hide it.
 
 SplashScreen.preventAutoHideAsync();
@@ -45,11 +46,13 @@ export default function RootLayout() {
 
 function RootLayoutNav() {
   return (
+    <ServerAddressProvider>
     <View style={[theme, StyleSheet.absoluteFill]}> 
       <Stack>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="modal" options={{ presentation: "modal" }} />
       </Stack>
     </View>
+    </ServerAddressProvider>
   );
 }

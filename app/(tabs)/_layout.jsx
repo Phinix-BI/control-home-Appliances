@@ -1,7 +1,6 @@
 import { Feather } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
 import { Text, View, TouchableOpacity, StyleSheet } from "react-native";
-import TabFiveScreen from "./five";
 
 /**
  * Custom Tab Bar Component

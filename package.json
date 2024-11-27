@@ -38,6 +38,7 @@
     "expo-system-ui": "~3.0.7",
     "expo-web-browser": "~13.0.3",
     "install": "^0.13.0",
+    "lottie-react-native": "^7.1.0",
     "nativewind": "4.1.10",
     "npm": "^10.9.1",
     "react": "18.2.0",

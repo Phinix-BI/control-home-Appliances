@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext, useCallback } from "react";
+import { useFocusEffect } from '@react-navigation/native';
 import {
   View,
   Text,
@@ -7,12 +8,14 @@ import {
   FlatList,
   ToastAndroid,
   GestureResponderEvent,
+  Image,
 } from "react-native";
 import ToastManager, { Toast } from "toastify-react-native";
 import InfoCard from "../../components/InfoCard";
 import AsyncStorage from "@react-native-async-storage/async-storage"; // Import AsyncStorage
 import GestureRecognizer from "react-native-swipe-gestures"; // Import gesture recognizer
 import { MaterialIcons } from "@expo/vector-icons";
+import { ServerAddressContext } from "../../context/ServerAddressContext"; // Import the ServerAddressContext
 
 const DEVICES_STORAGE_KEY = "devices";
 const SERVER_ADDRESS_KEY = "serverAddress";
@@ -25,28 +28,34 @@ const TabThreeScreen = () => {
   const [pinNo, setPinNo] = useState("");
   const [devices, setDevices] = useState([]);
   const [selectedDevices, setSelectedDevices] = useState([]);
+  const [editServerAddress, setEditServerAddress] = useState(false);
+  const { saveServerAddress: saveContextServerAddress, serverAddress: ESP32_SERVER_URL } = useContext(ServerAddressContext);
 
   // Fetch stored devices from AsyncStorage on component mount
-  useEffect(() => {
-    const fetchDevices = async () => {
-      try {
-        const storedDevices = await AsyncStorage.getItem(DEVICES_STORAGE_KEY);
-        if (storedDevices) {
-          setDevices(JSON.parse(storedDevices));
+
+  useFocusEffect(
+    useCallback(() => {
+      const fetchDevices = async () => {
+        try {
+          const storedDevices = await AsyncStorage.getItem(DEVICES_STORAGE_KEY);
+          if (storedDevices) {
+            setDevices(JSON.parse(storedDevices));
+          }
+        } catch (error) {
+          console.error("Failed to fetch devices:", error);
+          ToastAndroid.show("Error fetching devices", ToastAndroid.SHORT);
         }
-      } catch (error) {
-        console.error("Failed to fetch devices:", error);
-        ToastAndroid.show("Error fetching devices", ToastAndroid.SHORT);
-      }
-    };
-    fetchDevices();
-  }, []);
+      };
+      fetchDevices();
+    }, [])
+  );
 
   // save server address to AsyncStorage
 
-  const saveServerAddress = async (address) => {
+  const saveLocalServerAddress = async (address) => {
     try {
-      await AsyncStorage.setItem(SERVER_ADDRESS_KEY, address);
+      await saveContextServerAddress(address);
+      setEditServerAddress(!editServerAddress);
       ToastAndroid.show("Server address saved!", ToastAndroid.SHORT); // Feedback to user
     } catch (error) {
       console.error("Failed to save server address:", error);
@@ -106,36 +115,38 @@ const TabThreeScreen = () => {
         <FlatList
           data={devices}
           keyExtractor={(item) => item.id}
+          showsVerticalScrollIndicator={false}
           renderItem={({ item }) => (
             // Inside the FlatList renderItem
-<TouchableOpacity
-  onLongPress={() => handleLongPress(item.id)} // Long press to activate delete mode
-  activeOpacity={0.8}
->
-  <View className="relative">
-    <InfoCard
-      isTemperature={false}
-      iconName="bulb"
-      deviceName={item.deviceName}
-      pinNo={item.pinNo}
-      location={item.tagName}
-    />
-    {selectedDevices.includes(item.id) && (
-      <TouchableOpacity
-        onPress={() => handleDeleteDevice(item.id)}
-        className="absolute top-1 right-2"
-      >
-        <MaterialIcons name="delete" size={20} color="red" />
-      </TouchableOpacity>
-    )}
-  </View>
-</TouchableOpacity>
+            <TouchableOpacity
+              onLongPress={() => handleLongPress(item.id)} // Long press to activate delete mode
+              activeOpacity={0.8}
+            >
+              <View className="relative">
+                <InfoCard
+                  isTemperature={false}
+                  iconName="bulb"
+                  deviceName={item.deviceName}
+                  pinNo={item.pinNo}
+                  location={item.tagName}
+                />
+                {selectedDevices.includes(item.id) && (
+                  <TouchableOpacity
+                    onPress={() => handleDeleteDevice(item.id)}
+                    className="absolute top-1 right-2"
+                  >
+                    <MaterialIcons name="delete" size={20} color="red" />
+                  </TouchableOpacity>
+                )}
+              </View>
+            </TouchableOpacity>
 
           )}
           ListEmptyComponent={
-            <Text className="text-center text-gray-500 mt-4">
-              No devices added yet
-            </Text>
+            <View className="items-center mt-10">
+              <Image source={require("../../assets/images/few.png")} style={{ width: 300, height: 280 }} />
+              <Text className="text-center text-gray-500 mt-4">No devices added yet</Text>
+            </View>
           }
         />
       );
@@ -195,14 +206,23 @@ const TabThreeScreen = () => {
           </Text>
         </View>
         <ToastManager style={{ top: 20 }} />
-        <TextInput
-          value={serverAddress}
-          onChangeText={setServerAddress}
-          placeholder="Enter server address"
-          className="border rounded-md p-3 mb-4 bg-gray-100 text-gray-800"
-        />
+        <View>
+          <TextInput
+            value={editServerAddress ? serverAddress : ESP32_SERVER_URL}
+            onChangeText={setServerAddress}
+            placeholder="Enter server address"
+            className="border rounded-md p-3 mb-4 bg-gray-100 text-gray-800"
+          />
+          <View className="absolute top-5 right-3">
+            {!editServerAddress ?
+              (<MaterialIcons name="edit" size={20} color="#60A5FA" onPress={() => setEditServerAddress(!editServerAddress)} />)
+              : null
+            }
+
+          </View>
+        </View>
         <TouchableOpacity
-          onPress={() => saveServerAddress(serverAddress)}
+          onPress={() => saveLocalServerAddress(serverAddress)}
           className="bg-[#60A5FA] rounded-md p-4 mb-4"
         >
           <Text className="text-white text-center font-semibold">Submit</Text>
@@ -211,32 +231,28 @@ const TabThreeScreen = () => {
         <View className="flex-row justify-around border-b border-slate-200 mb-4">
           <TouchableOpacity
             onPress={() => setCurrentTab("allDevices")}
-            className={`flex-1 pb-2 ${
-              currentTab === "allDevices" ? "border-b-2 border-[#60A5FA]" : ""
-            }`}
+            className={`flex-1 pb-2 ${currentTab === "allDevices" ? "border-b-2 border-[#60A5FA]" : ""
+              }`}
           >
             <Text
-              className={`text-center font-semibold ${
-                currentTab === "allDevices"
+              className={`text-center font-semibold ${currentTab === "allDevices"
                   ? "text-[#60A5FA]"
                   : "text-gray-500"
-              }`}
+                }`}
             >
               All Devices
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
             onPress={() => setCurrentTab("newDevices")}
-            className={`flex-1 pb-2 ${
-              currentTab === "newDevices" ? "border-b-2 border-[#60A5FA]" : ""
-            }`}
+            className={`flex-1 pb-2 ${currentTab === "newDevices" ? "border-b-2 border-[#60A5FA]" : ""
+              }`}
           >
             <Text
-              className={`text-center font-semibold ${
-                currentTab === "newDevices"
+              className={`text-center font-semibold ${currentTab === "newDevices"
                   ? "text-[#60A5FA]"
                   : "text-gray-500"
-              }`}
+                }`}
             >
               New Devices
             </Text>

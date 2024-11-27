@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from "react";
-import { View, TouchableOpacity, Animated, StyleSheet } from "react-native";
+import React, { useState, useEffect , useContext } from "react";
+import { View, TouchableOpacity, Animated, StyleSheet, ToastAndroid } from "react-native";
 import axios from 'axios';
+import { ServerAddressContext } from "../context/ServerAddressContext";
 
 const CustomToggleButton = ({
   isEnabled = false, // Initial state
@@ -11,7 +12,7 @@ const CustomToggleButton = ({
   pinNo
 }) => {
   const translateX = useState(new Animated.Value(isEnabled ? 22 : 0))[0];
-
+  const { serverAddress : ESP32_SERVER_URL } = useContext(ServerAddressContext);
   useEffect(() => {
     Animated.timing(translateX, {
       toValue: isEnabled ? 22 : 0,
@@ -23,13 +24,15 @@ const CustomToggleButton = ({
   const handleToggle = async() => {
     const power = isEnabled ? 'L' : 'H';
     try {
-      const response = await axios.post(process.env.EXPO_PUBLIC_ESP32_SERVER_URL, {
+      onToggle(!isEnabled);
+      const response = await axios.post(ESP32_SERVER_URL + "control_light", {
         pin: pinNo,
         state: power,
       });
+      ToastAndroid.show("Action successful!", ToastAndroid.SHORT);
       console.log(response.data);
-      onToggle(!isEnabled);
     } catch (error) {
+      ToastAndroid.show("Check the server address", ToastAndroid.SHORT);
       console.error("Error toggling pin:", error);
     }
   };
