@@ -1,9 +1,9 @@
 # ⚛️💨 Universal Nativewind v4 starter
 ### Sample Test
 <img src="https://i.imgur.com/WXzT4GR.png" alt="Image"/>
-This starter is a expo managed app setup to create universal apps using expo-router and nativewind v4.
+This starter is an expo-managed app setup to create universal apps using expo-router and nativewind v4.
 
-Run with `npm start` and use `i` and `a` to launch app on expo go. `w` to launch web app.
+Run with `npm start` and use `i` and `a` to launch the app on Expo Go. `w` to launch the web app.
 
 ## Includes
 
